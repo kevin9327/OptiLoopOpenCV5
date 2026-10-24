@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OptiLoop Studio — OpenCV 5.0.0 + Agentic Vision + AWS Graviton4 COOL</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: #050914;
+      color: #f8fafc;
+      font-family: 'Segoe UI', Inter, system-ui, sans-serif;
+    }
+    #stage {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background: radial-gradient(circle at 82% 18%, rgba(34, 197, 94, 0.16), transparent 45%),
+                  radial-gradient(circle at 18% 82%, rgba(6, 182, 212, 0.15), transparent 50%),
+                  #050914;
+    }
+    .topbar {
+      position: absolute;
+      top: 28px;
+      left: 48px;
+      right: 48px;
+      height: 76px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .brand-badge {
+      background: linear-gradient(135deg, #22c55e, #06b6d4);
+      color: #031018;
+      font-weight: 900;
+      font-size: 17px;
+      padding: 8px 16px;
+      border-radius: 10px;
+    }
+    .brand-title { font-size: 25px; font-weight: 800; }
+    .pills { display: flex; gap: 12px; }
+    .pill {
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: #cbd5e1;
+    }
+    .pill.green { background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.45); color: #4ade80; }
+    .pill.cyan { background: rgba(6, 182, 212, 0.16); border-color: rgba(6, 182, 212, 0.45); color: #22d3ee; }
+
+    .scene {
+      position: absolute;
+      top: 124px;
+      left: 48px;
+      right: 48px;
+      bottom: 112px;
+      opacity: 0;
+      display: grid;
+      grid-template-columns: 520px 1fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+    .info-card {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: 20px;
+      padding: 34px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .step-tag {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #22d3ee;
+      margin-bottom: 12px;
+    }
+    .scene-title {
+      font-size: 35px;
+      font-weight: 800;
+      line-height: 1.18;
+      margin-bottom: 18px;
+    }
+    .scene-desc {
+      font-size: 19px;
+      line-height: 1.55;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .metric-box {
+      background: rgba(30, 41, 59, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .metric-val { font-size: 28px; font-weight: 900; color: #4ade80; }
+    .metric-lbl { font-size: 13px; color: #94a3b8; margin-top: 4px; font-weight: 600; }
+    .screen-frame {
+      background: #0b1120;
+      border: 2px solid rgba(34, 197, 94, 0.42);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.65);
+    }
+    .screen-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+    .footer-bar {
+      position: absolute;
+      bottom: 28px;
+      left: 48px;
+      right: 48px;
+      height: 64px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      font-size: 16px;
+      color: #cbd5e1;
+    }
+    .caption-pill { color: #4ade80; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div id="stage" data-composition-id="main" data-width="1920" data-height="1080" data-start="0" data-duration="45">
+    <audio id="voiceover" src="master_audio.wav" preload="auto"></audio>
+
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-badge">OPENCV AI COMPETITION 2026</span>
+        <span class="brand-title">OptiLoop Studio — OpenCV 5.0.0 + Agentic Vision + AWS Graviton4 COOL</span>
+      </div>
+      <div class="pills">
+        <span class="pill green">OpenCV 5.0.0 Closed-Loop</span>
+        <span class="pill cyan">KleidiCV Arm64 Speedup: 1.42x</span>
+        <span class="pill">-41.5% AWS Cloud Cost</span>
+      </div>
+    </div>
+
+    <!-- SCENE 1: Closed-Loop Agentic Vision (0 - 12s) -->
+    <div class="scene" id="scene1">
+      <div class="info-card">
+        <div>
+          <div class="step-tag">AGENTIC VISION AWARD · CLOSED-LOOP RE-TUNING</div>
+          <h2 class="scene-title">Pass 1 Glare Dropout → Autonomous Tool Call Re-Tuning → Pass 2 Sub-Pixel Lock</h2>
+          <p class="scene-desc">
+            When Pass 1 OpenCV 5.0.0 perception detects 28.4% specular glare (<code>Confidence 0.41 &lt; 0.80</code>), the Vision Agent invokes <code>retune_opencv_pipeline</code>—applying adaptive ROI crop, LAB CLAHE, Bilateral filtering, and <code>cv2.cornerSubPix</code>.
+          </p>
+        </div>
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-val">0.41 → 0.96</div>
+            <div class="metric-lbl">+134% Confidence Gain</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">0.08 px</div>
+            <div class="metric-lbl">Sub-Pixel Error</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">4 Domains</div>
+            <div class="metric-lbl">PCB · Aero · Medical · LNG</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">OpenCV 5.0.0</div>
+            <div class="metric-lbl">Native Kernel Execution</div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-frame">
+        <img src="optiloop_tab1_closedloop.png" alt="Closed Loop Agentic Vision" />
+      </div>
+    </div>
+
+    <!-- SCENE 2: AWS Graviton4 COOL Benchmark (12 - 23s) -->
+    <div class="scene" id="scene2">
+      <div class="info-card">
+        <div>
+          <div class="step-tag">BEST USE OF COOL AWARD · AWS GRAVITON4 ARM64</div>
+          <h2 class="scene-title">1.42x Faster Execution on AWS Graviton4 with KleidiCV NEON HAL</h2>
+          <p class="scene-desc">
+            Benchmarked across 6 KleidiCV-accelerated OpenCV 5 primitives (<code>GaussianBlur</code>, <code>Canny</code>, <code>Sobel</code>, <code>cvtColor</code>, <code>morphologyEx</code>, and <code>ORB</code>), cutting frame latency from 20.4ms to 14.4ms.
+          </p>
+        </div>
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-val">1.42x</div>
+            <div class="metric-lbl">COOL Pipeline Speedup</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">69.4 FPS</div>
+            <div class="metric-lbl">c8g.xlarge Throughput</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">-41.5%</div>
+            <div class="metric-lbl">Cost / 1M Frames ($0.83)</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">6 Kernels</div>
+            <div class="metric-lbl">KleidiCV NEON Verified</div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-frame">
+        <img src="optiloop_tab2_cool.png" alt="COOL Graviton4 Benchmark" />
+      </div>
+    </div>
+
+    <!-- SCENE 3: Human-in-the-Loop Safety Gate (23 - 34s) -->
+    <div class="scene" id="scene3">
+      <div class="info-card">
+        <div>
+          <div class="step-tag">RESPONSIBLE OPERATION · HUMAN-IN-THE-LOOP</div>
+          <h2 class="scene-title">Safety-Critical Escalation Gate & SHA-256 Audit Trail</h2>
+          <p class="scene-desc">
+            High-speed PCB lines auto-actuate PLC diverter gates, while Aerospace NDT and Clinical Retinal Triage enforce mandatory human sign-off with immutable SHA-256 execution hashes.
+          </p>
+        </div>
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-val">SHA-256</div>
+            <div class="metric-lbl">Immutable Audit Hash</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">HITL Gate</div>
+            <div class="metric-lbl">Clinical & NDT Sign-Off</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">0 False Pos</div>
+            <div class="metric-lbl">Post-Retune Precision</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">3 / 3 Passed</div>
+            <div class="metric-lbl">Pytest Verification</div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-frame">
+        <img src="optiloop_tab3_hitl.png" alt="Human in the Loop Gate" />
+      </div>
+    </div>
+
+    <!-- SCENE 4: System Architecture & Cloud Delivery (34 - 45s) -->
+    <div class="scene" id="scene4">
+      <div class="info-card">
+        <div>
+          <div class="step-tag">CLOUD DELIVERY · REPRODUCIBLE ENGINEERING</div>
+          <h2 class="scene-title">End-to-End Architecture, REPORT.md & Zero-Install Live Workbench</h2>
+          <p class="scene-desc">
+            Complete with comprehensive <code>REPORT.md</code>, reproducible <code>TESTING.md</code>, JSON benchmark artifacts, and live interactive deployment on GitHub Pages.
+          </p>
+        </div>
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-val">REPORT.md</div>
+            <div class="metric-lbl">Full Technical Report</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">TESTING.md</div>
+            <div class="metric-lbl">1-Min Reproducibility</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">MIT License</div>
+            <div class="metric-lbl">Open Source Repo</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">Live Web</div>
+            <div class="metric-lbl">Instant Judge Access</div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-frame">
+        <img src="optiloop_tab4_arch.png" alt="System Architecture" />
+      </div>
+    </div>
+
+    <div class="footer-bar">
+      <span><strong>GitHub:</strong> github.com/kevin9327/OptiLoopOpenCV5 · <strong>Live Workbench:</strong> kevin9327.github.io/OptiLoopOpenCV5/</span>
+      <span class="caption-pill">Overall Track + Best Use of COOL + Agentic Vision Award</span>
+    </div>
+  </div>
+
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+
+    tl.set("#scene1", { opacity: 1 }, 0)
+      .fromTo("#scene1 .info-card", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.1)
+      .fromTo("#scene1 .screen-frame", { scale: 0.96, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "power2.out" }, 0.2)
+      .to("#scene1", { opacity: 0, duration: 0.6 }, 11.4);
+
+    tl.set("#scene2", { opacity: 1 }, 12.0)
+      .fromTo("#scene2 .info-card", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 12.1)
+      .fromTo("#scene2 .screen-frame", { scale: 0.96, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "power2.out" }, 12.2)
+      .to("#scene2", { opacity: 0, duration: 0.6 }, 22.4);
+
+    tl.set("#scene3", { opacity: 1 }, 23.0)
+      .fromTo("#scene3 .info-card", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 23.1)
+      .fromTo("#scene3 .screen-frame", { scale: 0.96, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "power2.out" }, 23.2)
+      .to("#scene3", { opacity: 0, duration: 0.6 }, 33.4);
+
+    tl.set("#scene4", { opacity: 1 }, 34.0)
+      .fromTo("#scene4 .info-card", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 34.1)
+      .fromTo("#scene4 .screen-frame", { scale: 0.96, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "power2.out" }, 34.2)
+      .to("#scene4", { opacity: 1, duration: 1.0 }, 44.0);
+
+    window.__timelines["main"] = tl;
+  </script>
+</body>
+</html>

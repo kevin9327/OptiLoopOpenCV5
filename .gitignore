@@ -1,0 +1,5 @@
+__pycache__/
+.pytest_cache/
+hyperframes-spot/narration*.wav
+hyperframes-spot/raw_mix.wav
+.hyperframes/

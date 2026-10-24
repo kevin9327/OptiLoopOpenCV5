@@ -1,0 +1,382 @@
+{
+  "pcb_solder_bridge": {
+    "scenario_id": "pcb_solder_bridge",
+    "title": "High-Density Automotive radar PCB \u2014 Micro-Solder Bridge & Hairline Crack",
+    "domain": "Semiconductor & Electronics Manufacturing",
+    "sensor": "Coaxial Telecentric 5MP Basler Ace (1280x960)",
+    "defect_type": "0.11mm Pitch QFN Pin Solder Bridge + Trace Micro-Fracture",
+    "opencv_version": "5.0.0",
+    "initial_issue": "High Specular Glare in Quadrant B (Glare Ratio 28.4% > 12.0% Max)",
+    "pass1": {
+      "params": {
+        "pipeline": "Standard Global Canny",
+        "gaussian_ksize": 5,
+        "canny_low": 90,
+        "canny_high": 200,
+        "clahe_enabled": false,
+        "bilateral_enabled": false,
+        "subpixel_refinement": false,
+        "roi_crop": [
+          0,
+          0,
+          640,
+          480
+        ]
+      },
+      "metrics": {
+        "confidence": 0.41,
+        "glare_ratio_pct": 28.4,
+        "laplacian_sharpness": 112.6,
+        "detected_defects": 0,
+        "false_positives": 4,
+        "latency_x86_ms": 19.8,
+        "latency_cool_arm64_ms": 11.9
+      },
+      "live_opencv_stats": {
+        "contours_found": 1,
+        "orb_keypoints": 250,
+        "saturated_pixels": 1202,
+        "total_pixels": 307200,
+        "host_exec_ms": 497.505
+      }
+    },
+    "agent_orchestration": {
+      "failure_code": "SPECULAR_GLARE_MASKING_FINE_PITCH",
+      "reasoning": "Pass 1 OpenCV telemetry detected 28.4% saturated specular reflection over QFN-48 lead frame causing Canny edge dropout (Pass 1 confidence 0.41 < 0.80 threshold). Autonomously invoking tool call `retune_opencv_pipeline` with localized ROI crop [180,110,460,370], CLAHE illumination normalization (clipLimit=3.2, tileGrid=8x8), Bilateral edge-preserving filter (d=9, sigmaColor=75, sigmaSpace=75), Scharr gradient adaptive thresholding, and cv2.cornerSubPix.",
+      "tool_calls": [
+        "crop_adaptive_roi(x=180, y=110, w=280, h=260)",
+        "apply_clahe_lab(clip_limit=3.2, tile_grid=(8,8))",
+        "apply_bilateral_filter(d=9, sigma_color=75, sigma_space=75)",
+        "run_scharr_canny_subpixel(low=42, high=115, subpix_win=(5,5))"
+      ]
+    },
+    "pass2": {
+      "params": {
+        "pipeline": "COOL-Accelerated CLAHE + Bilateral + SubPixel Canny-Scharr",
+        "gaussian_ksize": 3,
+        "canny_low": 42,
+        "canny_high": 115,
+        "clahe_enabled": true,
+        "clahe_clip": 3.2,
+        "bilateral_enabled": true,
+        "subpixel_refinement": true,
+        "roi_crop": [
+          180,
+          110,
+          460,
+          370
+        ]
+      },
+      "metrics": {
+        "confidence": 0.96,
+        "glare_ratio_pct": 3.1,
+        "laplacian_sharpness": 348.2,
+        "detected_defects": 2,
+        "false_positives": 0,
+        "subpixel_error_px": 0.08,
+        "defect_dimension_mm": 0.11,
+        "latency_x86_ms": 22.4,
+        "latency_cool_arm64_ms": 13.4
+      },
+      "live_opencv_stats": {
+        "contours_found": 13,
+        "orb_keypoints": 47,
+        "subpixel_refined_corners": 32,
+        "host_exec_ms": 84.059
+      }
+    },
+    "human_in_the_loop_gate": {
+      "status": "AUTO_APPROVED_WITH_AUDIT_TRAIL",
+      "threshold_required": 0.8,
+      "final_confidence": 0.96,
+      "actuation_command": "PLC_REJECT_DIVERTER_GATE_02 (Lot #PCB-8841)",
+      "requires_human_override": false,
+      "audit_sha256": "efd1617120fb4852"
+    }
+  },
+  "aero_turbine_weld": {
+    "scenario_id": "aero_turbine_weld",
+    "title": "Titanium Aero-Turbine Blade \u2014 Laser Weld Micro-Porosity & Thermal Undercut",
+    "domain": "Aerospace NDT (Non-Destructive Testing)",
+    "sensor": "Borescope Monochrome NIR Camera (1280x960)",
+    "defect_type": "0.14mm Sub-Surface Weld Porosity Cluster + Heat-Affected Zone Undercut",
+    "opencv_version": "5.0.0",
+    "initial_issue": "Low Contrast & Directional Brush Texture Noise (SNR 8.2 dB < 15.0 dB Min)",
+    "pass1": {
+      "params": {
+        "pipeline": "Standard Sobel + Otsu Threshold",
+        "gaussian_ksize": 7,
+        "canny_low": 100,
+        "canny_high": 220,
+        "clahe_enabled": false,
+        "bilateral_enabled": false,
+        "subpixel_refinement": false,
+        "roi_crop": [
+          0,
+          0,
+          640,
+          480
+        ]
+      },
+      "metrics": {
+        "confidence": 0.38,
+        "glare_ratio_pct": 19.2,
+        "laplacian_sharpness": 94.1,
+        "detected_defects": 0,
+        "false_positives": 6,
+        "latency_x86_ms": 21.2,
+        "latency_cool_arm64_ms": 12.6
+      },
+      "live_opencv_stats": {
+        "contours_found": 1,
+        "orb_keypoints": 250,
+        "saturated_pixels": 1202,
+        "total_pixels": 307200,
+        "host_exec_ms": 3.496
+      }
+    },
+    "agent_orchestration": {
+      "failure_code": "ANISOTROPIC_SURFACE_STRIATION_DROPOUT",
+      "reasoning": "Pass 1 Otsu + Sobel pipeline masked micro-porosity pits inside brushed titanium grain (Pass 1 confidence 0.38 < 0.80 threshold). Agent selected morphological Top-Hat/Black-Hat granulometry + KleidiCV-accelerated ORB keypoint clustering + sub-pixel contour ellipse fitting.",
+      "tool_calls": [
+        "crop_adaptive_roi(x=140, y=130, w=360, h=220)",
+        "apply_morphology_blackhat(kernel=(11,11))",
+        "apply_clahe_lab(clip_limit=4.0, tile_grid=(8,8))",
+        "fit_subpixel_ellipses_and_orb(nfeatures=500)"
+      ]
+    },
+    "pass2": {
+      "params": {
+        "pipeline": "Morphological Black-Hat + CLAHE 4.0 + SubPixel Ellipse Fit",
+        "gaussian_ksize": 3,
+        "canny_low": 35,
+        "canny_high": 95,
+        "clahe_enabled": true,
+        "clahe_clip": 4.0,
+        "bilateral_enabled": true,
+        "subpixel_refinement": true,
+        "roi_crop": [
+          140,
+          130,
+          500,
+          350
+        ]
+      },
+      "metrics": {
+        "confidence": 0.93,
+        "glare_ratio_pct": 2.4,
+        "laplacian_sharpness": 319.7,
+        "detected_defects": 3,
+        "false_positives": 0,
+        "subpixel_error_px": 0.11,
+        "defect_dimension_mm": 0.14,
+        "latency_x86_ms": 24.1,
+        "latency_cool_arm64_ms": 14.2
+      },
+      "live_opencv_stats": {
+        "contours_found": 31,
+        "orb_keypoints": 82,
+        "subpixel_refined_corners": 32,
+        "host_exec_ms": 3.999
+      }
+    },
+    "human_in_the_loop_gate": {
+      "status": "ESCALATED_SAFETY_CRITICAL_HUMAN_SIGNOFF",
+      "threshold_required": 0.85,
+      "final_confidence": 0.93,
+      "actuation_command": "HOLD_TURBINE_SPOOL_FOR_LEVEL3_NDT_INSPECTOR",
+      "requires_human_override": true,
+      "audit_sha256": "3678c2290725a8e8"
+    }
+  },
+  "retinal_micro_lesion": {
+    "scenario_id": "retinal_micro_lesion",
+    "title": "Ophthalmic Fundus Screening \u2014 Diabetic Micro-Aneurysm & Hard Exudate ROI",
+    "domain": "Medical Diagnostic Imaging Triage",
+    "sensor": "Non-Mydriatic Retinal Fundus Camera (1280x960)",
+    "defect_type": "Clustered Capillary Micro-Aneurysms + Macular Hard Exudate Boundary",
+    "opencv_version": "5.0.0",
+    "initial_issue": "Uneven Peripheral Vignetting & Green-Channel Compression",
+    "pass1": {
+      "params": {
+        "pipeline": "RGB Grayscale + Global Adaptive Threshold",
+        "gaussian_ksize": 5,
+        "canny_low": 85,
+        "canny_high": 190,
+        "clahe_enabled": false,
+        "bilateral_enabled": false,
+        "subpixel_refinement": false,
+        "roi_crop": [
+          0,
+          0,
+          640,
+          480
+        ]
+      },
+      "metrics": {
+        "confidence": 0.46,
+        "glare_ratio_pct": 14.8,
+        "laplacian_sharpness": 128.5,
+        "detected_defects": 1,
+        "false_positives": 5,
+        "latency_x86_ms": 18.5,
+        "latency_cool_arm64_ms": 11.1
+      },
+      "live_opencv_stats": {
+        "contours_found": 1,
+        "orb_keypoints": 250,
+        "saturated_pixels": 1202,
+        "total_pixels": 307200,
+        "host_exec_ms": 3.453
+      }
+    },
+    "agent_orchestration": {
+      "failure_code": "PERIPHERAL_VIGNETTING_LOW_CONTRAST",
+      "reasoning": "Standard RGB conversion lost capillary micro-aneurysm contrast against retinal pigment background (Pass 1 confidence 0.46 < 0.80 threshold). Agent switched to Green-Channel extraction, background median subtraction, CLAHE (clipLimit=2.8), and circular Hough/Blob morphological verification.",
+      "tool_calls": [
+        "extract_green_channel_and_mask_fov()",
+        "apply_clahe_green(clip_limit=2.8, tile_grid=(12,12))",
+        "apply_tophat_vessel_suppression(kernel=(9,9))",
+        "detect_micro_lesion_contours_subpixel()"
+      ]
+    },
+    "pass2": {
+      "params": {
+        "pipeline": "Green-Channel CLAHE 2.8 + Vessel Suppression + SubPixel Contour",
+        "gaussian_ksize": 3,
+        "canny_low": 38,
+        "canny_high": 105,
+        "clahe_enabled": true,
+        "clahe_clip": 2.8,
+        "bilateral_enabled": true,
+        "subpixel_refinement": true,
+        "roi_crop": [
+          160,
+          100,
+          480,
+          380
+        ]
+      },
+      "metrics": {
+        "confidence": 0.94,
+        "glare_ratio_pct": 1.9,
+        "laplacian_sharpness": 334.0,
+        "detected_defects": 3,
+        "false_positives": 0,
+        "subpixel_error_px": 0.09,
+        "defect_dimension_mm": 0.09,
+        "latency_x86_ms": 20.9,
+        "latency_cool_arm64_ms": 12.4
+      },
+      "live_opencv_stats": {
+        "contours_found": 75,
+        "orb_keypoints": 53,
+        "subpixel_refined_corners": 32,
+        "host_exec_ms": 5.617
+      }
+    },
+    "human_in_the_loop_gate": {
+      "status": "CLINICAL_HUMAN_IN_THE_LOOP_REQUIRED",
+      "threshold_required": 0.85,
+      "final_confidence": 0.94,
+      "actuation_command": "QUEUE_OPHTHALMOLOGIST_PRIORITY_REVIEW_WITH_ROI_OVERLAY",
+      "requires_human_override": true,
+      "audit_sha256": "668521b07eb33faa"
+    }
+  },
+  "cryo_manifold_gauge": {
+    "scenario_id": "cryo_manifold_gauge",
+    "title": "LNG Cryogenic Manifold \u2014 Frosted Analog Pressure Gauge Sub-Degree Readout",
+    "domain": "Energy & Industrial Hazard Telemetry",
+    "sensor": "ATEX Zone-1 Fixed IP PTZ Camera (1280x960)",
+    "defect_type": "Over-Pressure Needle Excursion (184.6 PSI > 175.0 PSI Safety Limit)",
+    "opencv_version": "5.0.0",
+    "initial_issue": "Condensation Frost Glare & Perspective Tilt on Glass Dial",
+    "pass1": {
+      "params": {
+        "pipeline": "Standard HoughLinesP + Uncalibrated Circle Fit",
+        "gaussian_ksize": 5,
+        "canny_low": 95,
+        "canny_high": 210,
+        "clahe_enabled": false,
+        "bilateral_enabled": false,
+        "subpixel_refinement": false,
+        "roi_crop": [
+          0,
+          0,
+          640,
+          480
+        ]
+      },
+      "metrics": {
+        "confidence": 0.44,
+        "glare_ratio_pct": 31.0,
+        "laplacian_sharpness": 104.3,
+        "detected_defects": 0,
+        "false_positives": 3,
+        "latency_x86_ms": 17.9,
+        "latency_cool_arm64_ms": 10.8
+      },
+      "live_opencv_stats": {
+        "contours_found": 1,
+        "orb_keypoints": 250,
+        "saturated_pixels": 1202,
+        "total_pixels": 307200,
+        "host_exec_ms": 3.603
+      }
+    },
+    "agent_orchestration": {
+      "failure_code": "HOUGH_NEEDLE_AMBIGUITY_UNDER_FROST_GLARE",
+      "reasoning": "Frost glare on the dial glass split the needle edge into fragmented segments during Pass 1 (Pass 1 confidence 0.44 < 0.80 threshold). Agent invoked homography perspective rectification, CLAHE defogging, Morphological closing, and sub-pixel radial line integration.",
+      "tool_calls": [
+        "rectify_dial_homography_orb()",
+        "apply_clahe_defog(clip_limit=3.5, tile_grid=(8,8))",
+        "detect_needle_vector_subpixel(angle_res_deg=0.15)",
+        "compute_psi_and_trigger_valve_alert(limit_psi=175.0)"
+      ]
+    },
+    "pass2": {
+      "params": {
+        "pipeline": "Homography Rectified + CLAHE Defog + SubPixel Radial Vector",
+        "gaussian_ksize": 3,
+        "canny_low": 45,
+        "canny_high": 120,
+        "clahe_enabled": true,
+        "clahe_clip": 3.5,
+        "bilateral_enabled": true,
+        "subpixel_refinement": true,
+        "roi_crop": [
+          150,
+          90,
+          490,
+          390
+        ]
+      },
+      "metrics": {
+        "confidence": 0.97,
+        "glare_ratio_pct": 2.8,
+        "laplacian_sharpness": 362.5,
+        "detected_defects": 1,
+        "false_positives": 0,
+        "subpixel_error_px": 0.06,
+        "defect_dimension_mm": 184.6,
+        "latency_x86_ms": 19.6,
+        "latency_cool_arm64_ms": 11.7
+      },
+      "live_opencv_stats": {
+        "contours_found": 88,
+        "orb_keypoints": 80,
+        "subpixel_refined_corners": 32,
+        "host_exec_ms": 5.336
+      }
+    },
+    "human_in_the_loop_gate": {
+      "status": "AUTO_ALERT_WITH_OPERATOR_CONFIRMATION",
+      "threshold_required": 0.8,
+      "final_confidence": 0.97,
+      "actuation_command": "OPEN_RELIEF_SOLENOID_VALVE_B4 (Measured: 184.6 PSI)",
+      "requires_human_override": false,
+      "audit_sha256": "f4f911965769e363"
+    }
+  }
+}

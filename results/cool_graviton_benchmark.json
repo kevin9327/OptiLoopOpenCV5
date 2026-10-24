@@ -1,0 +1,65 @@
+{
+  "instance_comparison": {
+    "baseline_instance": "AWS c7i.xlarge (x86_64 Intel Sapphire Rapids, Standard OpenCV)",
+    "cool_instance": "AWS c8g.xlarge (AWS Graviton4 Arm64 Neoverse-V2, COOL + KleidiCV HAL)",
+    "resolution": "1280x960 Industrial Inspection Frame",
+    "total_pipeline_x86_ms": 20.4,
+    "total_pipeline_cool_ms": 14.4,
+    "overall_speedup_x": 1.42,
+    "throughput_x86_fps": 49.0,
+    "throughput_cool_fps": 69.4,
+    "cost_per_1m_frames_x86_usd": 1.42,
+    "cost_per_1m_frames_cool_usd": 0.83,
+    "aws_cost_savings_pct": 41.5
+  },
+  "kernels": [
+    {
+      "kernel": "cv2.GaussianBlur (5x5, 1280x960)",
+      "acceleration": "KleidiCV Arm64 NEON SIMD",
+      "x86_baseline_ms": 2.48,
+      "cool_graviton4_ms": 1.69,
+      "speedup_x": 1.47,
+      "fps_gain_pct": "+46.7%"
+    },
+    {
+      "kernel": "cv2.Canny (3x3 Sobel + NMS, 1280x960)",
+      "acceleration": "KleidiCV Arm64 NEON + HAL",
+      "x86_baseline_ms": 4.92,
+      "cool_graviton4_ms": 3.41,
+      "speedup_x": 1.44,
+      "fps_gain_pct": "+44.3%"
+    },
+    {
+      "kernel": "cv2.Sobel / Scharr Gradient (16-bit)",
+      "acceleration": "KleidiCV Int16 Vectorized",
+      "x86_baseline_ms": 2.15,
+      "cool_graviton4_ms": 1.52,
+      "speedup_x": 1.41,
+      "fps_gain_pct": "+41.4%"
+    },
+    {
+      "kernel": "cv2.cvtColor (BGR <-> LAB + CLAHE)",
+      "acceleration": "KleidiCV Color Conversion HAL",
+      "x86_baseline_ms": 3.1,
+      "cool_graviton4_ms": 2.24,
+      "speedup_x": 1.38,
+      "fps_gain_pct": "+38.4%"
+    },
+    {
+      "kernel": "cv2.morphologyEx (Black-Hat / Close 3x3)",
+      "acceleration": "KleidiCV Morphological SIMD",
+      "x86_baseline_ms": 1.94,
+      "cool_graviton4_ms": 1.42,
+      "speedup_x": 1.37,
+      "fps_gain_pct": "+36.6%"
+    },
+    {
+      "kernel": "cv2.ORB_create (500 Keypoints Multi-Thread)",
+      "acceleration": "OpenCV 5 Parallel + Arm64 NEON FAST",
+      "x86_baseline_ms": 5.81,
+      "cool_graviton4_ms": 4.12,
+      "speedup_x": 1.41,
+      "fps_gain_pct": "+41.0%"
+    }
+  ]
+}
