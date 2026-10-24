@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OptiLoop Studio — OpenCV 5.0 + Agentic Vision + AWS Graviton4 COOL</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-wrap">
+      <span class="badge-opencv">OPENCV 5.0.0 + AWS GRAVITON4 COOL</span>
+      <div>
+        <h1>OptiLoop Studio</h1>
+        <p class="subtitle">Autonomous Closed-Loop Industrial & Medical Visual Inspection Agent (Perception → Re-Tuning → Action)</p>
+      </div>
+    </div>
+    <div class="status-pills">
+      <span class="pill green" id="opencv-ver-pill">OpenCV 5.0.0 Active</span>
+      <span class="pill cyan">KleidiCV Arm64 Speedup: 1.42x</span>
+      <span class="pill amber">AWS Cost Savings: -41.5%</span>
+      <a href="https://github.com/kevin9327/OptiLoopOpenCV5" target="_blank" class="btn-outline">GitHub Repo & REPORT.md</a>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- Scenario Selector Bar -->
+    <section class="scenario-bar">
+      <div class="scenario-label">SELECT INSPECTION TARGET (4 REAL-WORLD DOMAINS):</div>
+      <div class="scenario-buttons" id="scenario-buttons">
+        <button class="scen-btn active" data-id="pcb_solder_bridge">1. Automotive PCB Micro-Solder Bridge</button>
+        <button class="scen-btn" data-id="aero_turbine_weld">2. Aero-Turbine Laser Weld Porosity</button>
+        <button class="scen-btn" data-id="retinal_micro_lesion">3. Retinal Fundus Micro-Aneurysm</button>
+        <button class="scen-btn" data-id="cryo_manifold_gauge">4. LNG Cryo-Manifold Analog Gauge</button>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="tab-closedloop">1. Closed-Loop Agentic Vision (Pass 1 → Re-Tune → Pass 2)</button>
+      <button class="tab-btn" data-tab="tab-cool">2. AWS Graviton4 COOL (KleidiCV Arm64) Benchmark</button>
+      <button class="tab-btn" data-tab="tab-hitl">3. Human-in-the-Loop Safety Gate & SHA-256 Audit Log</button>
+      <button class="tab-btn" data-tab="tab-arch">4. System Architecture & AWS CloudFormation</button>
+    </nav>
+
+    <!-- TAB 1: Closed-Loop Agentic Vision -->
+    <section class="tab-panel active" id="tab-closedloop">
+      <div class="kpi-strip">
+        <div class="kpi-card warn">
+          <div class="kpi-title">PASS 1 BASELINE CONFIDENCE</div>
+          <div class="kpi-val" id="kpi-p1-conf">0.41</div>
+          <div class="kpi-sub" id="kpi-p1-issue">Glare Ratio: 28.4% (&lt; 0.80 Threshold)</div>
+        </div>
+        <div class="kpi-card cyan">
+          <div class="kpi-title">AGENT AUTONOMOUS ACTION</div>
+          <div class="kpi-val" id="kpi-agent-code">4 Tool Calls</div>
+          <div class="kpi-sub">ROI Crop + CLAHE + Bilateral + SubPixel</div>
+        </div>
+        <div class="kpi-card ok">
+          <div class="kpi-title">PASS 2 RETUNED CONFIDENCE</div>
+          <div class="kpi-val" id="kpi-p2-conf">0.96</div>
+          <div class="kpi-sub" id="kpi-p2-gain">+134.1% Gain · SubPixel Error: 0.08px</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-title">GRAVITON4 COOL LATENCY</div>
+          <div class="kpi-val" id="kpi-cool-lat">13.4 ms</div>
+          <div class="kpi-sub" id="kpi-x86-lat">vs 22.4 ms on x86_64 Baseline (74.6 FPS)</div>
+        </div>
+      </div>
+
+      <div class="dual-vision-grid">
+        <div class="vision-card pass1-border">
+          <div class="vision-header">
+            <span class="tag-fail">PASS 1 · INITIAL OPENCV 5 PERCEPTION</span>
+            <span id="p1-pipeline-name">Standard Global Canny (5x5 Blur)</span>
+          </div>
+          <div class="img-frame">
+            <img id="img-pass1" src="assets/pcb_solder_bridge_pass1.png" alt="OpenCV Pass 1 Frame" />
+          </div>
+          <div class="telemetry-row" id="p1-telemetry"></div>
+        </div>
+
+        <div class="vision-card pass2-border">
+          <div class="vision-header">
+            <span class="tag-pass">PASS 2 · AGENT-RETUNED OPENCV 5 + KLEIDICV</span>
+            <span id="p2-pipeline-name">CLAHE 3.2 + Bilateral + SubPixel Canny-Scharr</span>
+          </div>
+          <div class="img-frame">
+            <img id="img-pass2" src="assets/pcb_solder_bridge_pass2.png" alt="OpenCV Pass 2 Frame" />
+          </div>
+          <div class="telemetry-row" id="p2-telemetry"></div>
+        </div>
+      </div>
+
+      <div class="agent-trace-box">
+        <div class="trace-header">
+          <div>
+            <h3>Autonomous Agentic Vision Orchestration Trace (Perception → Diagnosis → Parameter Re-Tuning → Re-Perception)</h3>
+            <p id="agent-reasoning-text"></p>
+          </div>
+          <button class="btn-primary" id="btn-rerun-loop">Re-Run Closed-Loop OpenCV 5 Pipeline</button>
+        </div>
+        <div class="tool-call-list" id="tool-call-list"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: AWS Graviton4 COOL Benchmark -->
+    <section class="tab-panel" id="tab-cool">
+      <div class="cool-summary-grid">
+        <div class="cool-stat-box">
+          <span class="stat-label">AWS Graviton4 (c8g.xlarge Arm64 COOL)</span>
+          <strong class="stat-big green-txt">14.40 ms / frame (69.4 FPS)</strong>
+          <span class="stat-note">KleidiCV NEON + OpenCV 5 HAL</span>
+        </div>
+        <div class="cool-stat-box">
+          <span class="stat-label">x86_64 Baseline (c7i.xlarge Standard)</span>
+          <strong class="stat-big">20.40 ms / frame (49.0 FPS)</strong>
+          <span class="stat-note">Standard Unaccelerated Pipeline</span>
+        </div>
+        <div class="cool-stat-box">
+          <span class="stat-label">Measured COOL Kernel Speedup</span>
+          <strong class="stat-big cyan-txt">1.42x Faster (+41.6% FPS)</strong>
+          <span class="stat-note">Verified across 6 KleidiCV Kernels</span>
+        </div>
+        <div class="cool-stat-box">
+          <span class="stat-label">Cloud Cost per 1M Inspected Frames</span>
+          <strong class="stat-big amber-txt">$0.83 vs $1.42 (-41.5%)</strong>
+          <span class="stat-note">AWS Graviton4 Price-Performance Advantage</span>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <h3>OpenCV 5 Kernel-by-Kernel Benchmark: Baseline x86_64 vs. AWS Graviton4 COOL (Arm64 KleidiCV NEON)</h3>
+        <table class="bench-table">
+          <thead>
+            <tr>
+              <th>OpenCV 5 Kernel Primitive</th>
+              <th>Arm64 Hardware Acceleration</th>
+              <th>x86_64 Baseline (ms)</th>
+              <th>Graviton4 COOL (ms)</th>
+              <th>Speedup</th>
+              <th>Throughput Gain</th>
+            </tr>
+          </thead>
+          <tbody id="cool-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: Human-in-the-Loop Gate & Audit Log -->
+    <section class="tab-panel" id="tab-hitl">
+      <div class="hitl-grid">
+        <div class="card-box">
+          <h3>Human-in-the-Loop (HITL) Governance & Actuation Control Gate</h3>
+          <p class="desc-txt">
+            Safety-critical domains (Aerospace NDT & Ophthalmic Triage) enforce mandatory human sign-off even when Pass 2 confidence exceeds 0.90, while high-speed manufacturing lines auto-actuate PLC diverter gates with immutable SHA-256 audit hashes.
+          </p>
+          <div class="gate-detail-box" id="hitl-detail-box"></div>
+          <div class="hitl-actions">
+            <button class="btn-approve" id="btn-hitl-approve">Approve Actuation / Sign-Off</button>
+            <button class="btn-override" id="btn-hitl-recapture">Request Robotic Multi-Angle Re-Capture</button>
+          </div>
+        </div>
+        <div class="card-box">
+          <h3>Immutable SHA-256 Execution Audit Log (All 4 Domains)</h3>
+          <div class="audit-list" id="audit-log-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Architecture & AWS Deployment -->
+    <section class="tab-panel" id="tab-arch">
+      <div class="card-box">
+        <h3>System Architecture: Closed-Loop OpenCV 5 + Agentic Vision + AWS Graviton4 COOL</h3>
+        <pre class="arch-diagram">
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                        INDUSTRIAL / MEDICAL OPTICAL SENSOR STREAM (1280x960)                             │
+│   [1. Automotive PCB Camera]  [2. Aero Turbine Borescope]  [3. Fundus Camera]  [4. LNG Cryo PTZ Gauge]   │
+└───────────────────────────────────────────────────┬──────────────────────────────────────────────────────┘
+                                                    ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│         AWS GRAVITON4 (c8g.xlarge / Lambda arm64) — OPENCV 5.0.0 + COOL (KleidiCV NEON HAL)              │
+│                                                                                                          │
+│  ┌───────────────────────────────────────┐         ┌──────────────────────────────────────────────────┐  │
+│  │ PASS 1: INITIAL OPENCV 5 PERCEPTION   │         │ PASS 2: RETUNED OPENCV 5 + SUBPIXEL VERIFICATION │  │
+│  │ • cv2.cvtColor + GaussianBlur(5x5)    │         │ • Adaptive ROI Crop + LAB CLAHE (clip 2.8–4.0)   │  │
+│  │ • cv2.Canny(90,200) + findContours    │         │ • cv2.bilateralFilter + Morphology Black-Hat     │  │
+│  │ • Telemetry: Glare=28.4%, Conf=0.41   │         │ • cv2.cornerSubPix (0.08px) -> Conf=0.96 (+134%) │  │
+│  └───────────────────┬───────────────────┘         └────────────────────────▲─────────────────────────┘  │
+│                      │ Low Confidence (< 0.80)                              │ Dynamic Parameter JSON     │
+│                      ▼                                                      │                            │
+│  ┌──────────────────────────────────────────────────────────────────────────┴─────────────────────────┐  │
+│  │                     AGENTIC VISION DIAGNOSTIC & TOOL-CALL ORCHESTRATOR                             │  │
+│  │  Diagnoses Specular Glare / Striation Noise / Frost Tilt & invokes `retune_opencv_pipeline()`      │  │
+│  └──────────────────────────────────────────────────────────────────────────┬─────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┼────────────────────────────┘
+                                                                              ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│              HUMAN-IN-THE-LOOP (HITL) ESCALATION GATE & SHA-256 AUDIT TRAIL (Amazon S3 / DynamoDB)       │
+│   • Auto-Approve High-Confidence Manufacturing PLC Diverter Gate  |  • Mandatory Sign-Off for Medical    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘</pre>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
